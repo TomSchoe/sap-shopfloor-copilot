@@ -1,0 +1,342 @@
+<mvc:View
+  controllerName="shopfloor.copilot.controller.Main"
+  xmlns:mvc="sap.ui.core.mvc"
+  xmlns="sap.m"
+  xmlns:f="sap.f"
+  xmlns:core="sap.ui.core"
+  displayBlock="true">
+  <App>
+  <Page class="sapUiResponsiveContentPadding">
+
+    <!-- Fiori-Shell-Kopfzeile -->
+    <customHeader>
+      <f:ShellBar title="Shopfloor Cockpit"
+                  secondTitle="{i18n>shellSubtitle} · {/me/roleLabel}">
+        <f:searchManager>
+          <f:SearchManager search="onSearchOrder" placeholder="{i18n>searchPlaceholder}"/>
+        </f:searchManager>
+        <f:additionalContent>
+          <!-- Abmelden: nur in der Cloud (XSUAA-Session); lokal übernimmt der Demo-Umschalter -->
+          <OverflowToolbarButton icon="sap-icon://log" text="{i18n>logout}" tooltip="{i18n>logout}"
+                                 press="onLogout" visible="{= !${/demo/isLocal} }"/>
+        </f:additionalContent>
+      </f:ShellBar>
+    </customHeader>
+
+    <!-- Schwebendes Copilot-Chat-Fenster (öffnet über dem Floating-Button) -->
+    <dependents>
+      <ResponsivePopover id="copilotPopover" placement="Top"
+                         contentWidth="27rem" contentHeight="30rem" showArrow="true">
+        <customHeader>
+          <Bar>
+            <contentLeft>
+              <Title text="{i18n>copilotTitle}" level="H5"/>
+            </contentLeft>
+            <contentRight>
+              <Button icon="sap-icon://clear-all" type="Transparent" tooltip="{i18n>clearChat}" press="onClearChat"/>
+              <Button icon="sap-icon://decline" type="Transparent" tooltip="{i18n>close}" press="onCloseCopilot"/>
+            </contentRight>
+          </Bar>
+        </customHeader>
+        <content>
+          <VBox class="sapUiContentPadding">
+            <!-- Aktiver KI-Pfad + Umschalter (fix oben; Umschalter nur lokal — in der Cloud fix API) -->
+            <HBox alignItems="Center" justifyContent="SpaceBetween" wrap="Wrap" class="sapUiTinyMarginBottom">
+              <ObjectStatus text="{i18n>aiPathPrefix} {/copilot/providerLabel}" state="Information" icon="sap-icon://connected"/>
+              <SegmentedButton selectedKey="{/copilot/provider}" selectionChange="onSwitchProvider"
+                               visible="{/copilot/switchable}">
+                <items>
+                  <SegmentedButtonItem key="local"        text="{i18n>providerLocal}" tooltip="{i18n>providerLocalTip}"/>
+                  <SegmentedButtonItem key="subscription" text="{i18n>providerSub}"   tooltip="{i18n>providerSubTip}"/>
+                  <SegmentedButtonItem key="api"          text="{i18n>providerApi}"   tooltip="{i18n>providerApiTip}"/>
+                </items>
+              </SegmentedButton>
+            </HBox>
+            <!-- Chat-Verlauf: Sprechblasen (User rechts / Assistent links) -->
+            <ScrollContainer id="copilotScroll" vertical="true" horizontal="false" width="100%" height="23rem">
+              <List items="{/copilot/messages}" showSeparators="None" backgroundDesign="Transparent">
+                <CustomListItem>
+                  <HBox justifyContent="{= ${role} === 'user' ? 'End' : 'Start' }" width="100%" class="sapUiTinyMarginBottom">
+                    <VBox class="{= ${role} === 'user' ? 'sfMsg sfMsgUser' : 'sfMsg sfMsgBot' }">
+                      <FormattedText htmlText="{html}"/>
+                      <Text text="🔧 {tool}" visible="{= !!${tool} }" class="sfMsgTool"/>
+                    </VBox>
+                  </HBox>
+                </CustomListItem>
+              </List>
+            </ScrollContainer>
+          </VBox>
+        </content>
+        <footer>
+          <Toolbar>
+            <Input id="qInput" placeholder="{i18n>askPlaceholder}" submit="onAsk" width="100%">
+              <layoutData><ToolbarLayoutData shrinkable="true"/></layoutData>
+            </Input>
+            <Button icon="sap-icon://paper-plane" type="Emphasized" tooltip="{i18n>askTip}" press="onAsk"/>
+          </Toolbar>
+        </footer>
+      </ResponsivePopover>
+
+      <!-- Schicht-Übersicht als Popup (öffnet per Klick auf "Stück (Schicht)") -->
+      <Dialog id="shiftReportDialog" title="{i18n>shiftReportTitle}"
+              contentWidth="46rem" contentHeight="32rem" resizable="true" draggable="true">
+        <HBox class="sapUiSmallMargin">
+          <VBox width="50%" class="sapUiSmallMarginEnd">
+            <Title text="{i18n>shiftEarly}" level="H5" class="sapUiTinyMarginBottom"/>
+            <List items="{/shiftReport/early}" noDataText="{i18n>noneFinishedYet}">
+              <StandardListItem title="{order}" info="{clock}" infoState="Success" icon="sap-icon://accept"/>
+            </List>
+          </VBox>
+          <VBox width="50%">
+            <Title text="{i18n>shiftLate}" level="H5" class="sapUiTinyMarginBottom"/>
+            <List items="{/shiftReport/late}" noDataText="{i18n>noneFinishedYet}">
+              <StandardListItem title="{order}" info="{clock}" infoState="Success" icon="sap-icon://accept"/>
+            </List>
+          </VBox>
+        </HBox>
+        <beginButton>
+          <Button text="{i18n>close}" press="onCloseShiftReport"/>
+        </beginButton>
+      </Dialog>
+
+      <!-- Ø-Zeit je Takt vs. Zielzeit (öffnet per Klick auf "Zielzeit pro Takt") -->
+      <Dialog id="taktDialog" title="{i18n>taktAvgTitle} {/live/taktMin} {i18n>minUnit}" contentWidth="34rem" contentHeight="30rem">
+        <subHeader>
+          <Toolbar>
+            <Label text="{i18n>filterLabel}" class="sapUiTinyMarginEnd"/>
+            <SegmentedButton selectedKey="{/taktReport/filter}" selectionChange="onFilterTakt">
+              <items>
+                <SegmentedButtonItem key="all"  text="{i18n>filterAll}"/>
+                <SegmentedButtonItem key="ok"   text="{i18n>filterOk}"/>
+                <SegmentedButtonItem key="over" text="{i18n>filterOver}"/>
+              </items>
+            </SegmentedButton>
+          </Toolbar>
+        </subHeader>
+        <List items="{/taktReport/stations}" noDataText="{i18n>noStationInSelection}">
+          <StandardListItem title="{name}" description="{delta}" info="{info}" infoState="{state}" highlight="{state}"/>
+        </List>
+        <beginButton>
+          <Button text="{i18n>close}" press="onCloseTakt"/>
+        </beginButton>
+      </Dialog>
+
+      <!-- Aufträge auf der Linie je Takt (öffnet per Klick auf "Auf der Linie") -->
+      <Dialog id="wipDialog" title="{i18n>wipDialogTitle}" contentWidth="34rem" contentHeight="30rem">
+        <List items="{/live/takte}" noDataText="{i18n>noLineActive}">
+          <StandardListItem title="{i18n>takt} {takt} – {stationName}" description="{orders}"
+                            info="{= ${jam} ? ${i18n>jam} : (${free} ? ${i18n>free} : '') }"
+                            infoState="{= ${jam} ? 'Warning' : (${free} ? 'None' : 'Information') }"
+                            highlight="{= ${jam} ? 'Warning' : 'None' }"
+                            type="{= ${free} ? 'Inactive' : 'Navigation' }" press="onOpenOrder"
+                            icon="sap-icon://product"/>
+        </List>
+        <beginButton>
+          <Button text="{i18n>close}" press="onCloseWip"/>
+        </beginButton>
+      </Dialog>
+
+      <!-- Mitarbeiter-Qualität (Meister) – Fehlerquoten, Namen für andere Rollen maskiert -->
+      <Dialog id="workerDialog" title="{i18n>workerDialogTitle}" contentWidth="42rem" contentHeight="30rem">
+        <List items="{/workerQuality/rows}" noDataText="{i18n>noIssues}">
+          <StandardListItem title="{worker}" description="{detail}" info="{rate} %" infoState="{state}"
+                            highlight="{state}" icon="sap-icon://employee"/>
+        </List>
+        <Text text="{i18n>workerDataNote}"
+              class="sapUiSmallMargin"/>
+        <beginButton>
+          <Button text="{i18n>close}" press="onCloseWorker"/>
+        </beginButton>
+      </Dialog>
+
+      <!-- Gemeinsames Popup für die KPI-Kacheln (Engpass / Durchfaller / Konfig-Fehler) -->
+      <Dialog id="kpiDetailDialog" title="{/detail/title}" contentWidth="38rem" contentHeight="28rem">
+        <List items="{/detail/rows}" noDataText="{i18n>kpiNoEntries}">
+          <StandardListItem title="{line1}" description="{line2}" info="{info}" infoState="{state}"
+                            type="{= ${stationNo} ? 'Navigation' : 'Inactive'}" press="onKpiItemPress"/>
+        </List>
+        <beginButton>
+          <Button text="{i18n>close}" press="onCloseKpiDetail"/>
+        </beginButton>
+      </Dialog>
+
+      <!-- Auftragszettel (öffnet per Klick auf einen belegten Takt in der WIP-Liste) -->
+      <Dialog id="orderDialog" title="{i18n>orderSheetTitle}" icon="sap-icon://sales-order"
+              contentWidth="32rem" contentHeight="28rem">
+        <VBox class="sapUiContentPadding">
+          <Title text="{/orderDetail/order}" level="H4"/>
+          <ObjectStatus text="{i18n>orderCurrent} {/orderDetail/takt} – {/orderDetail/station}"
+                        state="Information" icon="sap-icon://process" class="sapUiSmallMarginBottom"/>
+          <ObjectStatus text="{i18n>configMismatchBanner}"
+                        state="Error" icon="sap-icon://alert" class="sapUiSmallMarginBottom"
+                        visible="{/orderDetail/hasMismatch}"/>
+          <List showSeparators="Inner" backgroundDesign="Transparent">
+            <DisplayListItem label="{i18n>lblCompressorType}" value="{/orderDetail/model}"/>
+            <DisplayListItem label="{i18n>lblSerial}" value="{/orderDetail/sn}"/>
+            <DisplayListItem label="{i18n>lblMarket}" value="{/orderDetail/marketLine}"/>
+            <DisplayListItem label="{i18n>lblVoltage}" value="{/orderDetail/voltage}"/>
+            <DisplayListItem label="{i18n>lblPower}" value="{/orderDetail/power}"/>
+            <DisplayListItem label="{i18n>lblValve}" value="{/orderDetail/valveLine}"/>
+            <DisplayListItem label="{i18n>lblDryer}" value="{/orderDetail/dryer}"/>
+            <DisplayListItem label="{i18n>lblHeatRecovery}" value="{/orderDetail/wrg}"/>
+          </List>
+        </VBox>
+        <beginButton>
+          <Button text="{i18n>close}" press="onCloseOrder"/>
+        </beginButton>
+      </Dialog>
+    </dependents>
+
+    <!-- Live-Linienmonitor -->
+    <Panel class="sapUiSmallMarginBottom">
+      <headerToolbar>
+        <OverflowToolbar>
+          <core:Icon src="sap-icon://factory" class="sapUiTinyMarginEnd"/>
+          <Title text="{i18n>liveMonitor}"/>
+          <ToolbarSpacer/>
+          <Label text="{i18n>demoLogin}" class="sapUiTinyMarginEnd" visible="{/demo/isLocal}"/>
+          <SegmentedButton selectedKey="{/demo/user}" selectionChange="onSwitchRole" class="sapUiTinyMarginEnd" visible="{/demo/isLocal}">
+            <items>
+              <SegmentedButtonItem key="mitarbeiter" text="{i18n>roleMitarbeiter}" icon="sap-icon://employee"/>
+              <SegmentedButtonItem key="meister"     text="{i18n>roleMeister}"     icon="sap-icon://manager"/>
+            </items>
+          </SegmentedButton>
+          <Label text="{i18n>timeLabel}" class="sapUiTinyMarginEnd"/>
+          <SegmentedButton selectedKey="{/live/mode}" selectionChange="onSwitchTimeMode" class="sapUiTinyMarginEnd">
+            <items>
+              <SegmentedButtonItem key="demo" text="{i18n>timeDemo}" icon="sap-icon://lab"/>
+              <SegmentedButtonItem key="real" text="{i18n>timeReal}"  icon="sap-icon://time-entry-request"/>
+            </items>
+          </SegmentedButton>
+          <!-- Sprach-Umschalter DE/EN (zeigt die aktive Sprache; lädt beim Wechsel neu) -->
+          <core:Icon src="sap-icon://world" tooltip="{i18n>langTooltip}" class="sapUiTinyMarginEnd"/>
+          <SegmentedButton selectedKey="{/lang}" selectionChange="onSwitchLanguage" class="sapUiTinyMarginEnd">
+            <items>
+              <SegmentedButtonItem key="de" text="DE"/>
+              <SegmentedButtonItem key="en" text="EN"/>
+            </items>
+          </SegmentedButton>
+          <ObjectStatus text="{i18n>lineRunning}" state="Success" icon="sap-icon://connected" class="sapUiTinyMarginEnd"/>
+          <ObjectStatus text="{= ${/live/mode} === 'real' ? ${i18n>timeReal} : ${i18n>timeDemoAccel} }"
+                        state="{= ${/live/mode} === 'real' ? 'Success' : 'Warning' }"
+                        icon="sap-icon://lab" class="sapUiTinyMarginEnd"/>
+          <ObjectStatus text="{/live/shiftLabel}" state="Information" icon="sap-icon://employee" class="sapUiTinyMarginEnd"/>
+          <ObjectStatus text="{/live/clock} {i18n>clockSuffix}" icon="sap-icon://time-entry-request"/>
+        </OverflowToolbar>
+      </headerToolbar>
+      <VBox class="sapUiSmallMargin">
+        <HBox wrap="Wrap">
+          <GenericTile header="{i18n>tilePieces} ({/live/shiftShort})" frameType="OneByHalf" width="11rem" press="onUnitsDetail" class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+            <TileContent unit="{i18n>unitStk}"><NumericContent value="{/live/unitsThisShift}" valueColor="Good"/></TileContent>
+          </GenericTile>
+          <GenericTile header="{i18n>tileTarget}" frameType="OneByHalf" width="11rem" class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+            <TileContent unit="{i18n>unitStk}"><NumericContent value="{/live/unitsThisShift}" scale="/16" valueColor="Neutral"/></TileContent>
+          </GenericTile>
+          <GenericTile header="{i18n>tileTaktTime}" frameType="OneByHalf" width="11rem" press="onTaktDetail" class="sapUiTinyMarginEnd sapUiTinyMarginBottom">
+            <TileContent><NumericContent value="{/live/taktMin}" scale="{i18n>minUnit}" valueColor="Neutral"/></TileContent>
+          </GenericTile>
+          <GenericTile header="{i18n>tileWip}" frameType="OneByHalf" width="11rem" press="onWipDetail" class="sapUiTinyMarginBottom">
+            <TileContent unit="WIP"><NumericContent value="{/live/wipCount}" valueColor="Neutral"/></TileContent>
+          </GenericTile>
+        </HBox>
+        <HBox wrap="Wrap" class="sapUiSmallMarginTop">
+          <VBox width="30rem" class="sapUiMediumMarginEnd">
+            <Title text="{i18n>wipTitle}" level="H5" class="sapUiTinyMarginBottom"/>
+            <List items="{/live/takte}" noDataText="{i18n>noLineActive}">
+              <StandardListItem title="{i18n>takt} {takt} – {stationName}"
+                                description="{orders}"
+                                info="{= ${jam} ? ${i18n>jam} : (${free} ? ${i18n>free} : '') }"
+                                infoState="{= ${jam} ? 'Warning' : (${free} ? 'None' : 'Information') }"
+                                highlight="{= ${jam} ? 'Warning' : 'None' }"
+                                type="{= ${free} ? 'Inactive' : 'Navigation' }" press="onOpenOrder"
+                                icon="sap-icon://product"/>
+            </List>
+          </VBox>
+          <VBox width="36rem">
+            <Title text="{i18n>ticker}" level="H5" class="sapUiTinyMarginBottom"/>
+            <List items="{/live/events}" noDataText="{i18n>emptyDash}">
+              <StandardListItem title="{text}"/>
+            </List>
+          </VBox>
+        </HBox>
+      </VBox>
+    </Panel>
+
+    <!-- KPI-Kacheln -->
+    <HBox wrap="Wrap" class="sapUiSmallMarginBottom">
+      <GenericTile header="{i18n>kpiBottleneck}" subheader="{/kpi/bottleneckTakte}" press="onBottleneck" width="14rem" class="sapUiTinyMargin">
+        <TileContent unit="{i18n>unitTakte}"><NumericContent value="{/kpi/bottleneckCount}" valueColor="Critical"/></TileContent>
+      </GenericTile>
+      <GenericTile header="{i18n>kpiFails}" press="onFailures" width="14rem" class="sapUiTinyMargin">
+        <TileContent><NumericContent value="{/kpi/fails}" valueColor="Error"/></TileContent>
+      </GenericTile>
+      <GenericTile header="{i18n>kpiMismatches}" press="onMismatches" width="14rem" class="sapUiTinyMargin" visible="{/me/isSupervisor}">
+        <TileContent><NumericContent value="{/kpi/mismatches}" valueColor="Error"/></TileContent>
+      </GenericTile>
+      <GenericTile header="{i18n>kpiWorkers}" press="onWorkerQuality" width="14rem" class="sapUiTinyMargin" visible="{/me/isSupervisor}">
+        <TileContent unit="{i18n>unitPers}"><NumericContent value="{/kpi/workerIssues}" valueColor="Critical"/></TileContent>
+      </GenericTile>
+    </HBox>
+
+    <!-- Fertigungslinie als klickbares Zickzack-Flussdiagramm -->
+    <Panel headerText="{i18n>lineFlow}" class="sapUiSmallMarginTop">
+      <ScrollContainer id="flowScroll" horizontal="true" vertical="false" width="100%" height="222px">
+        <core:HTML id="flowDiagram"/>
+      </ScrollContainer>
+      <Text text="{i18n>flowLegend}"
+            class="sapUiSmallMarginBegin sapUiTinyMarginBottom"/>
+    </Panel>
+
+    <!-- Stationsdetail (erscheint nach Klick auf eine Station) -->
+    <Panel headerText="{/station/title}" class="sapUiSmallMarginTop" visible="{/station/selected}">
+      <VBox class="sapUiSmallMargin">
+        <Text text="{/station/info}" class="sapUiTinyMarginBottom"/>
+        <Title text="{i18n>ordersAtTakt}" level="H6" class="sapUiSmallMarginTop sapUiTinyMarginBottom"/>
+        <List items="{/station/orders}" noDataText="{i18n>noOrderAtTakt}">
+          <StandardListItem title="{order}" type="Navigation" press="onOpenStationOrder" icon="sap-icon://product"
+                            info="{= ${jam} ? ${i18n>jam} : '' }" infoState="{= ${jam} ? 'Warning' : 'None' }"/>
+        </List>
+        <Title text="{i18n>errorsAnomalies}" level="H6" class="sapUiSmallMarginTop sapUiTinyMarginBottom"
+               visible="{= ${/station/rows}.length &gt; 0 }"/>
+        <List items="{/station/rows}" noDataText="{i18n>noAnomaliesAtTakt}" visible="{= ${/station/rows}.length &gt; 0 }">
+          <StandardListItem title="{text}" info="{kat}" icon="sap-icon://alert" highlight="Error"/>
+        </List>
+        <Title text="{i18n>lastBookings}" level="H6" class="sapUiSmallMarginTop sapUiTinyMarginBottom"/>
+        <List items="{/station/bookings}" noDataText="{i18n>noBookingsAtTakt}">
+          <StandardListItem title="{worker}" description="{i18n>orderWord} {orderNo} · {i18n>shiftWord} {shift}" info="{i18n>pnPrefix} {pernr}" icon="sap-icon://employee"/>
+        </List>
+        <Text text="{i18n>maskNote}"
+              class="sapUiTinyMarginTop" visible="{= !${/me/isSupervisor} }"/>
+      </VBox>
+    </Panel>
+
+    <!-- Copilot als Floating-Button (öffnet das schwebende Chat-Fenster unten rechts) -->
+    <Button id="copilotFab" class="sfFab" icon="sap-icon://discussion-2" type="Emphasized"
+            tooltip="{i18n>copilotFabTip}" press="onToggleCopilot"/>
+
+    <!-- Copilot-Audit-Log (Governance — nur Supervisor) -->
+    <Panel headerText="{i18n>auditTitle}" class="sapUiSmallMarginTop" visible="{/me/isSupervisor}">
+      <Table items="{/audit}" noDataText="{i18n>noAuditYet}" class="sapUiSmallMargin">
+        <columns>
+          <Column width="11rem"><Text text="{i18n>colTime}"/></Column>
+          <Column width="8rem"><Text text="{i18n>colRole}"/></Column>
+          <Column><Text text="{i18n>colQuestion}"/></Column>
+          <Column width="16rem"><Text text="{i18n>colTools}"/></Column>
+        </columns>
+        <items>
+          <ColumnListItem>
+            <cells>
+              <Text text="{time}"/>
+              <ObjectStatus text="{role}" state="Information" icon="sap-icon://person-placeholder"/>
+              <Text text="{question}"/>
+              <Text text="{usedTool}"/>
+            </cells>
+          </ColumnListItem>
+        </items>
+      </Table>
+    </Panel>
+
+
+  </Page>
+  </App>
+</mvc:View>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopfloor Copilot</title>
+  <style>
+    html, body, #content { height: 100%; margin: 0; }
+    /* Floating-Action-Button (Copilot) unten rechts */
+    .sfFab.sapMBtn { position: fixed; right: 1.75rem; bottom: 1.75rem; z-index: 50; width: 3.5rem; height: 3.5rem; }
+    .sfFab .sapMBtnInner { width: 3.5rem; height: 3.5rem; min-width: 3.5rem; border-radius: 50%; box-shadow: 0 6px 16px rgba(0,0,0,.28); }
+    .sfFab .sapMBtnIcon { line-height: 3.5rem; font-size: 1.6rem; }
+    /* Copilot Chat-Verlauf: Sprechblasen (User rechts / Assistent links) */
+    .sfMsg { border-radius: .8rem; padding: .4rem .7rem; max-width: 92%; }
+    .sfMsgBot { background: #eef1f5; }
+    .sfMsgUser { background: #0854a0; }
+    .sfMsgUser, .sfMsgUser * { color: #fff !important; }
+    .sfMsg p:first-child { margin-top: 0; }
+    .sfMsg p:last-child { margin-bottom: 0; }
+    .sfMsgTool { font-size: .7rem; opacity: .55; margin-top: .1rem; }
+  </style>
+  <script
+    id="sap-ui-bootstrap"
+    src="https://ui5.sap.com/resources/sap-ui-core.js"
+    data-sap-ui-theme="sap_horizon"
+    data-sap-ui-resourceroots='{"shopfloor.copilot": "./"}'
+    data-sap-ui-oninit="module:sap/ui/core/ComponentSupport"
+    data-sap-ui-compatVersion="edge"
+    data-sap-ui-async="true">
+  </script>
+</head>
+<body class="sapUiBody">
+  <div id="content" style="height:100%"
+       data-sap-ui-component data-name="shopfloor.copilot" data-id="container"
+       data-settings='{"id":"shopfloor"}'></div>
+</body>
+</html>

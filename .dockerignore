@@ -1,0 +1,22 @@
+# Wird im Image via npm install neu gebaut (richtige Plattform-Binaries)
+node_modules
+
+# Secrets — NIEMALS ins Image
+.env
+.env.local
+app.env
+*.env
+
+# Nicht für den Demo-Container gebraucht
+app/router
+mta_archives
+*.mtar
+.shopfloor-copilot_mta_build_tmp
+gen
+
+# Git / Editor / Doku
+.git
+.gitignore
+.vscode
+.DS_Store
+HANDOFF.md

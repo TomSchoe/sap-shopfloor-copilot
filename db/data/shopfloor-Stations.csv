@@ -1,0 +1,12 @@
+ID,stationNo,name,kind
+4f453f4d-06f7-4d70-aa35-e196db2cf566,1,Grundplatte + Motormontage,ASSEMBLY
+cf1112fd-b64d-4421-a37e-f39ab81534a4,2,Schaltschrankmontage,ASSEMBLY
+8aecc241-e1a1-4935-98b2-85c0f97ce833,3,Elektromontage Motorleistungen,ASSEMBLY
+afba19a3-31c7-44fe-8853-5bea81b159cc,4,Lueftergehaeuse + Lueftermotor,ASSEMBLY
+eff5fdc4-a844-445c-be8a-c6e769ded30d,5,Oelabscheider + Sicherheitsventil,ASSEMBLY
+951f8715-6e0c-4366-9c9e-3c9f8ef892cf,6,Elektromontage Sensoren/Bedienpult,ASSEMBLY
+701dd629-3a2f-4c5d-854e-fbf5d3fac7a8,7,Verrohrung,ASSEMBLY
+1d75485e-d3a6-49c5-a8e5-dd141438fcb9,8,Gehaeuse + verkleben,ASSEMBLY
+0989d49c-c478-4079-bd75-02e73e1aaa07,9,Inline-Pruefung,INLINE_TEST
+395d3a23-fc03-4045-8bb3-7802659a888d,10,Pruefraum,TEST_ROOM
+22c9c852-1803-4ea5-81c0-ef221cbc47f4,11,Versand/Kundenanpassung,FINISHING

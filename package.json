@@ -1,0 +1,40 @@
+{
+  "name": "shopfloor-copilot",
+  "version": "1.0.0",
+  "description": "Shopfloor-Copilot – KI-Erweiterung für SAP (CAP) für eine Baukompressor-Montagelinie.",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.92.0",
+    "@cap-js/hana": "^2",
+    "@cap-js/sqlite": "^2",
+    "@sap/cds": "^9",
+    "@sap/xssec": "^4",
+    "express": "^4"
+  },
+  "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.138",
+    "@sap/cds-dk": "^9",
+    "zod": "^4.4.3"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "watch": "cds watch"
+  },
+  "cds": {
+    "requires": {
+      "[development]": {
+        "auth": {
+          "kind": "mocked",
+          "users": {
+            "mitarbeiter": { "password": "mitarbeiter", "roles": ["Worker"] },
+            "meister":     { "password": "meister",     "roles": ["Worker", "Supervisor"] }
+          }
+        }
+      },
+      "[production]": {
+        "auth": "xsuaa"
+      }
+    }
+  }
+}

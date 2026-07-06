@@ -1,0 +1,6 @@
+ID,name,kind
+9c9d7a85-3fee-47d6-ad1a-7a44ec1e2925,Motorenwerk (extern),EXTERNAL
+3872e8d6-4b88-4f09-967e-8066cd8f187a,VentilTech GmbH,EXTERNAL
+33dfb2f6-0403-4121-9ca1-b7e9eb9e5307,Kabelbaum-Vorfertigung,INHOUSE_PREASSEMBLY
+7ebc34b2-aef6-47e9-a0c8-8a72dd9e627b,Schaltschrank-Fertigung,INHOUSE_PREASSEMBLY
+a09e077a-bde0-419e-8b42-5843a0d40913,Norm-Teile (Kanban),EXTERNAL

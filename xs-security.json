@@ -1,0 +1,19 @@
+{
+  "scopes": [
+    { "name": "$XSAPPNAME.Worker",     "description": "Werker an der Linie" },
+    { "name": "$XSAPPNAME.Supervisor", "description": "Schichtleiter / Supervisor" }
+  ],
+  "attributes": [],
+  "role-templates": [
+    {
+      "name": "Worker",
+      "description": "Werker: Live-Monitor, KPIs, Diagramm, Scan/Validierung",
+      "scope-references": [ "$XSAPPNAME.Worker" ]
+    },
+    {
+      "name": "Supervisor",
+      "description": "Supervisor: zusätzlich Copilot, Wurzelursachen-Analyse und Konfig-Fehler",
+      "scope-references": [ "$XSAPPNAME.Worker", "$XSAPPNAME.Supervisor" ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+ID,order_ID,kind,description,resolvedBy
+7a1edbd4-a129-4305-8fb6-154d79f5933d,f988d12e-47e2-4aa2-b6fe-fd6990383045,MAJOR_OFFLINE,"Druck baut nicht auf - 8-bar-Ventil an St.5 verbaut, Tausch gegen 10 bar",T03
+c5db8d74-8c42-4b5c-9921-0d4f77cd0d85,eb079648-d9ab-4524-88d0-93d4726c220e,MINOR_INLINE,"Phasenasymmetrie - Leistungsverdrahtung St.3 / Kabelbaum-Charge, Crimpung nachgearbeitet",T01
+88fb4445-5caa-4a6d-bc34-2614c424b203,9e0a3f07-ab2d-42f0-b66f-1fa537f4e89b,MINOR_INLINE,Dichtheit ueberschritten - Dichtgummi-Charge an St.7 getauscht,T02
+aacf4932-8457-46c6-b82e-d672a2f6d175,2428adf7-a8e4-40a4-a970-3504a5ae478f,MINOR_INLINE,"Phasenasymmetrie - Leistungsverdrahtung St.3 / Kabelbaum-Charge, Crimpung nachgearbeitet",T01
+7350203b-b8b1-4f69-a54f-50c39dc3e83c,4b6eda99-0ce6-4525-be71-660e6e1f8fca,MAJOR_OFFLINE,"Druck baut nicht auf - 8-bar-Ventil an St.5 verbaut, Tausch gegen 10 bar",T03
+45eb5a7c-eb91-47e1-b751-51a8d23c8421,b98dcf75-fcab-40ff-8d41-ff89fc0bfcc2,MINOR_INLINE,"Phasenasymmetrie - Leistungsverdrahtung St.3 / Kabelbaum-Charge, Crimpung nachgearbeitet",T01
+2946f357-f40a-4901-bb3c-607835f4a969,7219e75f-6ca0-4c76-8c8a-06c78f05ebaa,MINOR_INLINE,Dichtheit ueberschritten - Dichtgummi-Charge an St.7 getauscht,T02
+ef9c2d93-cfc0-42a0-855b-dee68d372cd5,89d0a80a-2a29-4454-a020-5d02d8301e3e,MAJOR_OFFLINE,"Druck baut nicht auf - 8-bar-Ventil an St.5 verbaut, Tausch gegen 10 bar",T03
+afb8b1f1-1719-4dc7-94ac-825d64e4038a,2015641c-8534-44f9-a35f-4c1b89bb8a76,MINOR_INLINE,Dichtheit ueberschritten - Dichtgummi-Charge an St.7 getauscht,T02
+4e7098f9-586d-4e38-9507-990aca7360b4,99d5e2b2-3bc3-4912-9e80-8176279c30e1,MAJOR_OFFLINE,"Druck baut nicht auf - 8-bar-Ventil an St.5 verbaut, Tausch gegen 10 bar",T03
+732d7e02-9cf0-4a57-9a52-3e5435980164,0ce117ee-2767-4947-8e0f-86526dc22171,MAJOR_OFFLINE,"Druck baut nicht auf - 8-bar-Ventil an St.5 verbaut, Tausch gegen 10 bar",T03
+3141070a-1bc1-43a1-812c-74edd1e67231,2809e726-9ca7-4264-9647-d2a15d032186,MINOR_INLINE,"Phasenasymmetrie - Leistungsverdrahtung St.3 / Kabelbaum-Charge, Crimpung nachgearbeitet",T01
+13df9562-92cf-4045-ad5a-dcfaba3a54a3,ec4ba183-fa1e-45c4-b7b0-e53c2e891d61,MINOR_INLINE,Dichtheit ueberschritten - Dichtgummi-Charge an St.7 getauscht,T02
+99fe60ad-a990-483f-8456-19f9e75c3afa,9b96d685-a3f2-4448-a6cc-672dc3b3f6f4,MINOR_INLINE,"Phasenasymmetrie - Leistungsverdrahtung St.3 / Kabelbaum-Charge, Crimpung nachgearbeitet",T01
+11d4e5f0-8b55-4bfe-bfa8-05d85ca313f9,c76e63a0-d772-46cb-b87f-c9139d0ba924,MINOR_INLINE,"Phasenasymmetrie - Leistungsverdrahtung St.3 / Kabelbaum-Charge, Crimpung nachgearbeitet",T01
+e5d57d24-afa9-4dcb-bcd3-fea50accce04,45b6a3ce-0a5e-4fac-a467-cc4eed39689b,MINOR_INLINE,Dichtheit ueberschritten - Dichtgummi-Charge an St.7 getauscht,T02
