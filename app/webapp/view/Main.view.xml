@@ -10,7 +10,7 @@
 
     <!-- Fiori-Shell-Kopfzeile -->
     <customHeader>
-      <f:ShellBar title="Shopfloor Cockpit"
+      <f:ShellBar title="{i18n>appTitle}"
                   secondTitle="{i18n>shellSubtitle} · {/me/roleLabel}">
         <f:searchManager>
           <f:SearchManager search="onSearchOrder" placeholder="{i18n>searchPlaceholder}"/>

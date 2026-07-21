@@ -18,6 +18,7 @@ mta_archives/
 # @cap-js/cds-typer
 @cds-models
 
-# Lokale Secrets / Env
+# Lokale Secrets / Env — *.env deckt auch app.env & Co. ab (Lehre aus Security-Review 04.07.)
 .env
 .env.local
+*.env

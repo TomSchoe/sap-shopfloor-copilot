@@ -20,6 +20,15 @@ const RL = {
 }
 const _rlHits = new Map()          // key -> [timestamps im jeweiligen Fenster]
 let _rlDayStart = Date.now(), _rlDayCount = 0
+// Hygiene: Keys entfernen, deren letzter Treffer älter als das größte Fenster ist —
+// sonst wächst die Map um einen Eintrag pro jemals gesehener Besucher-IP (24/7-Demo).
+const _rlSweep = setInterval(() => {
+  const now = Date.now(), maxWin = Math.max(RL.windowMs, RL.ipWindowMs)
+  for (const [k, arr] of _rlHits) {
+    if (!arr.length || now - arr[arr.length - 1] > maxWin) _rlHits.delete(k)
+  }
+}, 3600000)
+if (_rlSweep.unref) _rlSweep.unref()
 // Prüft: Tageskappe (harte Kosten-Obergrenze) + globaler Burst + das Schlüssel-Limit
 // (Login-User pro windowMs ODER Besucher-IP pro ipWindowMs).
 function copilotRateLimit(key, keyLimit, keyWindowMs) {
@@ -808,6 +817,15 @@ module.exports = cds.service.impl(async function () {
     { name: 'workerQuality',    description: 'Mitarbeiter mit auffälliger Fehlerquote (je Mitarbeiter der Takt mit der höchsten Quote an Buchungen für durchgefallene Aufträge). Liefert das auffaelligster-Feld fertig + die absteigend sortierte Liste. Für "welcher Mitarbeiter macht häufig Fehler" das Feld auffaelligster bzw. Rang 1 nehmen. Sensibel/Leistungsbewertung – nur Meister.', input_schema: { type: 'object', properties: {} } },
   ]
   this.on('askCopilot', async req => {
+    const lang = langOf(req)
+    // Eingabe-Guard VOR dem Rate-Limit: leere Frage → 400 (sonst TypeError → 500, und der
+    // Fehlversuch zählt gegen das Kontingent). Längenkappung = Kostenschutz im Public-Demo
+    // (das Rate-Limit deckelt nur die Anzahl der Anfragen, nicht die Token pro Anfrage).
+    const question = String(req.data.question || '').trim()
+    if (!question)
+      return req.reject(400, lang === 'en' ? 'Please enter a question.' : 'Bitte gib eine Frage ein.')
+    if (question.length > 1000)
+      return req.reject(400, lang === 'en' ? 'Question too long (max. 1,000 characters).' : 'Frage zu lang (max. 1.000 Zeichen).')
     // Rate-Limit gegen Missbrauch/Kosten: in der Cloud (BTP), im öffentlichen Demo-Host (DEMO_PUBLIC)
     // oder lokal per COPILOT_RATE_ALWAYS=true. Demo: pro Besucher-IP; sonst pro Login-Nutzer.
     if (process.env.VCAP_APPLICATION || DEMO_PUBLIC || process.env.COPILOT_RATE_ALWAYS === 'true') {
@@ -817,7 +835,6 @@ module.exports = cds.service.impl(async function () {
       if (!rl.ok) return req.reject(429, rl.msg)
     }
     const isSup = req.user.is('Supervisor')
-    const lang = langOf(req)
     // Tool-Gating: Werker bekommen NUR die unkritischen Tools. Das schützt auch den
     // In-Process-Aufruf des Copilots (die OData-@requires greifen hier nicht).
     const tools = isSup ? SUPERVISOR_TOOLS : WORKER_TOOLS
@@ -839,7 +856,6 @@ module.exports = cds.service.impl(async function () {
       },
       workerQuality:    () => workerQualityInsight(isSup)
     }
-    const question = req.data.question
     const knowledge = await retrieveKnowledge(question)
     const roleNote = isSup
       ? `Du hast Meister-Rechte: nutze bei Bedarf auch Wurzelursachen-Analyse und sensible Einzeldetails.`

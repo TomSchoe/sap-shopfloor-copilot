@@ -27,6 +27,7 @@ sap.ui.define([
     const headers = { "Accept-Language": currentLang() };
     if (demoAuth) headers.Authorization = demoAuth;
     const r = await fetch(`${BASE}/${path}`, { headers });
+    if (!r.ok) throw new Error("HTTP " + r.status + " – " + path);
     const j = await r.json();
     return j.value !== undefined ? j.value : j;
   }
@@ -38,7 +39,11 @@ sap.ui.define([
       headers,
       body: JSON.stringify(body || {})
     });
-    return r.json();
+    // Fehler (400/429/500) als Error werfen — mit der Server-Meldung (z.B. Rate-Limit-Text),
+    // damit der Aufrufer sie anzeigen kann statt ein Fehler-JSON als Daten zu verarbeiten.
+    const j = await r.json().catch(function () { return {}; });
+    if (!r.ok) throw new Error((j.error && j.error.message) || "HTTP " + r.status);
+    return j;
   }
 
   // 1 Nachkommastelle im Sprachformat (de: Komma, en: Punkt)
@@ -179,7 +184,7 @@ sap.ui.define([
     },
 
     // Demo-Login wechseln (nur lokal): setzt den basic-auth-Header und lädt rollenabhängig neu
-    onSwitchRole: function (oEvent) {
+    onSwitchRole: async function (oEvent) {
       const user = oEvent.getParameter("item").getKey();   // "mitarbeiter" (Werker) | "meister" (Supervisor)
       demoAuth = "Basic " + btoa(user + ":" + user);
       this._m.setProperty("/demo/user", user);
@@ -187,7 +192,7 @@ sap.ui.define([
       if (pop && pop.isOpen()) pop.close();
       this._m.setProperty("/station", { selected: false, title: "", info: "", rows: [] });
       this._m.setProperty("/detail", { title: "", rows: [] });
-      this._loadMe();
+      await this._loadMe();   // Rolle ZUERST — _loadKpis liest /me/isSupervisor aus dem Model
       this._loadKpis();
       this._loadLive();
       this._loadAudit();
@@ -196,7 +201,7 @@ sap.ui.define([
     // Zeitmodus umschalten: Demo (beschleunigte Schicht-Uhr) <-> Echtzeit (Systemzeit, reale Takte)
     onSwitchTimeMode: function (oEvent) {
       const mode = oEvent.getParameter("item").getKey();
-      action("setTimeMode", { mode }).then(() => this._loadLive());
+      action("setTimeMode", { mode }).then(() => this._loadLive()).catch(() => {});
     },
 
     onExit: function () {
@@ -204,6 +209,7 @@ sap.ui.define([
     },
 
     _loadKpis: async function () {
+      try {
       const sup = this._m.getProperty("/me/isSupervisor");
       const [bn, fs] = await Promise.all([fn("bottleneck()"), fn("failureSummary()")]);
       const mm = sup ? await fn("configMismatches()") : [];   // Worker darf das nicht (403)
@@ -218,6 +224,7 @@ sap.ui.define([
         mismatches: String((mm || []).length),
         workerIssues: String((wq || []).filter(w => w.rate >= 40).length)
       });
+      } catch (e) { /* transient (z.B. beim Rollenwechsel) – nächster Load holt auf */ }
     },
 
     onBottleneck: async function () {
@@ -314,7 +321,8 @@ sap.ui.define([
 
     _showOrderZettel: async function (order, item) {
       const rb = this._rb;
-      const d = await action("orderDetail", { order });
+      let d;
+      try { d = await action("orderDetail", { order }); } catch (e) { d = null; }
       if (!d || d.model === "–") { MessageToast.show(rb.getText("orderNotFound", [order])); return; }
       const valveLine  = d.valveMismatch  ? rb.getText("targetInstalled", [d.requiredValve, d.installedValve]) : d.requiredValve;
       const marketLine = d.marketMismatch ? rb.getText("targetInstalled", [d.market, d.installedMarket]) : d.market;
@@ -413,7 +421,9 @@ sap.ui.define([
         this._loadAudit();   // Audit-Log nach erfolgreichem Aufruf aktualisieren
       } catch (e) {
         const upd = (this._m.getProperty("/copilot/messages") || []).slice();
-        upd[botIdx] = { role: "assistant", html: this._rb.getText("chatError"), tool: "" };
+        // Server-Meldung zeigen, wenn vorhanden (z.B. Rate-Limit-Text oder 400-Hinweis)
+        const msg = e && e.message && e.message.indexOf("HTTP") !== 0 ? this._escapeHtml(e.message) : this._rb.getText("chatError");
+        upd[botIdx] = { role: "assistant", html: msg, tool: "" };
         this._m.setProperty("/copilot/messages", upd);
       }
       this._scrollChat();
@@ -508,9 +518,11 @@ sap.ui.define([
 
     // --- Fertigungslinie als Zickzack-Flussdiagramm ------------------------
     _loadFlow: async function () {
-      const flow = await fn("stationOverview()");
-      this._m.setProperty("/flow", flow || []);
-      this._renderFlow(flow || []);
+      try {
+        const flow = await fn("stationOverview()");
+        this._m.setProperty("/flow", flow || []);
+        this._renderFlow(flow || []);
+      } catch (e) { /* Diagramm bleibt leer; der 5-s-Live-Tick rendert weiter */ }
     },
 
     _renderFlow: function (stations, wip) {

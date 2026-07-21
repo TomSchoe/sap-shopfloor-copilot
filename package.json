@@ -2,7 +2,7 @@
   "name": "shopfloor-copilot",
   "version": "1.0.0",
   "description": "Shopfloor-Copilot – KI-Erweiterung für SAP (CAP) für eine Baukompressor-Montagelinie.",
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
   "private": true,
   "dependencies": {
     "@anthropic-ai/sdk": "^0.92.0",

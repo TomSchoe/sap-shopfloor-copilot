@@ -20,3 +20,8 @@ gen
 .vscode
 .DS_Store
 HANDOFF.md
+
+# CDS-Credential-Artefakte & lokale DB-Dateien (Defense-in-Depth, analog .gitignore)
+default-*.json
+.cdsrc-private.json
+*.sqlite

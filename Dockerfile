@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Nur Produktions-Deps (inkl. @cap-js/sqlite); Agent-SDK/zod/cds-dk bleiben draußen -> schlankes Image.
 COPY package.json package-lock.json ./
-RUN npm install --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # App-Code (siehe .dockerignore: node_modules, .env, app/router, mta-Artefakte etc. bleiben draußen)
 COPY . .
